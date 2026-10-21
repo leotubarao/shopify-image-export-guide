@@ -68,19 +68,20 @@ If a field has a different name in your version, send the dev a screenshot of th
 - [ ] Exported from the original PSD, not from another JPEG
 - [ ] Preview at 100% with label text and edges sharp, no blocks or halos
 
-## Dev check
+## Check before sending
 
-Before uploading to Shopify, the dev runs the [`shopify-image-optimizer`](../shopify-image-optimizer/SKILL.md) skill in audit mode. It lists, per file, format, dimensions, weight, color profile, estimated JPEG quality and name, and marks OK or FIX without changing anything.
+Before sending, check your files with the [`shopify-image-optimizer`](../shopify-image-optimizer/SKILL.md) skill. With Claude, install the skill (see the [README](../README.md)), attach the images to a chat and ask it to check them for Shopify. It lists, per file, format, dimensions, weight, color profile, estimated JPEG quality and name, and marks OK or FIX without changing anything.
+
+If a file is flagged for estimated quality below 80, a size smaller than 2×, or a profile other than sRGB, export it again from the PSD. If size and color are correct but the file is over the weight target, ask Claude to optimize it: it lowers the weight without reducing the resolution.
+
+Developers can run the same check from the terminal:
 
 ```
 python3 shopify-image-optimizer/scripts/optimize.py designer-folder --check --preset product
-```
-
-A file with estimated quality below 80, a size smaller than 2×, or a profile other than sRGB goes back to the designer for a new export from the PSD. A file with correct size and color but over the weight target is optimized by the dev without reducing the resolution:
-
-```
 python3 shopify-image-optimizer/scripts/optimize.py designer-folder -o optimized --preset product
 ```
+
+The first command only audits. The second optimizes and never changes the originals.
 
 ## Sources
 

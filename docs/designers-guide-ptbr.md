@@ -68,19 +68,20 @@ Se algum campo tiver nome diferente na sua versão, mande um print da janela ao 
 - [ ] Exportado do PSD original, não de outro JPEG
 - [ ] Preview em 100% com texto de rótulo e bordas nítidos, sem blocos nem halos
 
-## Conferência do dev
+## Conferir antes de enviar
 
-Antes de subir na Shopify, o dev roda a skill [`shopify-image-optimizer`](../shopify-image-optimizer/SKILL.md) em modo de auditoria. Ela lista, por arquivo, formato, dimensões, peso, perfil de cor, qualidade JPEG estimada e nome, e marca OK ou FIX sem alterar nada.
+Antes de enviar, confira seus arquivos com a skill [`shopify-image-optimizer`](../shopify-image-optimizer/SKILL.md). Com o Claude, instale a skill (veja o [README](README-ptbr.md)), anexe as imagens numa conversa e peça para conferir para Shopify. Ela lista, por arquivo, formato, dimensões, peso, perfil de cor, qualidade JPEG estimada e nome, e marca OK ou FIX sem alterar nada.
+
+Se um arquivo vier marcado por qualidade estimada abaixo de 80, dimensão menor que o 2× ou perfil fora do sRGB, exporte de novo a partir do PSD. Se tamanho e cor estiverem certos, mas o arquivo passar do peso-alvo, peça ao Claude para otimizar: ele baixa o peso sem reduzir a resolução.
+
+Quem é dev pode rodar a mesma conferência no terminal:
 
 ```
 python3 shopify-image-optimizer/scripts/optimize.py pasta-do-designer --check --preset product
-```
-
-Arquivo com qualidade estimada abaixo de 80, dimensão menor que o 2× ou perfil fora do sRGB volta ao designer para nova exportação do PSD. Arquivo com dimensão e cor corretas, mas acima do peso, o dev otimiza sem reduzir a resolução:
-
-```
 python3 shopify-image-optimizer/scripts/optimize.py pasta-do-designer -o optimized --preset product
 ```
+
+O primeiro comando só audita. O segundo otimiza e nunca altera os originais.
 
 ## Fontes
 

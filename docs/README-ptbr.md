@@ -9,7 +9,7 @@ Padrão para exportar e validar imagens de lojas Shopify sem perder nitidez nem 
 | Arquivo | Para quem | O que é |
 | --- | --- | --- |
 | [`designers-guide-ptbr.md`](designers-guide-ptbr.md) | Designers (Photoshop) | Tamanhos em 2×, conversão para sRGB, configuração do Save for Web, nome de arquivo e checklist de envio |
-| [`../shopify-image-optimizer/`](../shopify-image-optimizer/) | Devs | Skill com o script que audita e otimiza as imagens entregues |
+| [`../shopify-image-optimizer/`](../shopify-image-optimizer/) | Designers e devs | Skill com o script que audita e otimiza as imagens antes de enviar ou subir na loja |
 
 A versão principal, em inglês, está em [`../README.md`](../README.md) e [`designers-guide.md`](designers-guide.md).
 
@@ -18,11 +18,12 @@ A versão principal, em inglês, está em [`../README.md`](../README.md) e [`des
 - Com Git: `git clone https://github.com/leotubarao/shopify-image-export-guide.git`
 - Sem Git: na página do repositório no GitHub, clique em **Code > Download ZIP** e extraia o arquivo.
 
-Designers só precisam do guia ([`designers-guide-ptbr.md`](designers-guide-ptbr.md)). A skill é para devs.
+Designers: o guia ([`designers-guide-ptbr.md`](designers-guide-ptbr.md)) mostra como exportar, e a skill confere os arquivos antes de enviar. Com o Claude não precisa de terminal: anexe as imagens numa conversa e peça para conferir para Shopify.
 
 ## Instalar a skill (opcional)
 
-- **Claude (claude.ai ou app desktop):** a execução de código precisa estar ativada. Compacte a pasta `shopify-image-optimizer` de modo que a própria pasta seja a raiz do ZIP (`shopify-image-optimizer.zip` contendo `shopify-image-optimizer/SKILL.md`). Não compacte o repositório inteiro. Depois adicione o ZIP em **Customize > Skills** e ative a skill. Em seguida, anexe imagens numa conversa e peça ao Claude para conferir ou otimizar para Shopify. Guia oficial (em inglês): [How to create custom skills](https://support.claude.com/en/articles/12512198-how-to-create-custom-skills).
+- **Claude (claude.ai ou app desktop):** a execução de código precisa estar ativada. Baixe o [`shopify-image-optimizer.zip`](https://github.com/leotubarao/shopify-image-export-guide/releases/latest/download/shopify-image-optimizer.zip) na última release, adicione em **Customize > Skills** e ative a skill. Em seguida, anexe imagens numa conversa e peça ao Claude para conferir ou otimizar para Shopify. Guia oficial (em inglês): [How to create custom skills](https://support.claude.com/en/articles/12512198-how-to-create-custom-skills).
+  - Se preferir montar o ZIP você mesmo, compacte a pasta `shopify-image-optimizer` de modo que a própria pasta seja a raiz do ZIP (`shopify-image-optimizer.zip` contendo `shopify-image-optimizer/SKILL.md`). Não compacte o repositório inteiro.
 - **Claude Code:** copie a pasta `shopify-image-optimizer` para `~/.claude/skills/` (vale para todos os projetos) ou para `.claude/skills/` dentro de um projeto. Guia oficial (em inglês): [Extend Claude with skills](https://code.claude.com/docs/en/skills).
 - **Sem Claude:** rode o script direto com Python, como mostrado abaixo.
 
