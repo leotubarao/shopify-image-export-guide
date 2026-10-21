@@ -59,6 +59,7 @@ These are starting goals. Adjust with `--max-side`, `--target-kb` or `--display-
 
 ## Rules when using it
 
+- The user may be a designer without a terminal. Run the commands yourself on the attached images, then hand back the optimized files with a plain-language summary (what was fixed, what still needs a new export from the original PSD).
 - Run `--check` before optimizing. If a file is already `OK`, **do not recompress it** (each recompression loses a little quality).
 - If `--check` shows an estimated quality below 80, the problem came from the designer: ask for a new export from the original instead of trying to "fix" the JPEG.
 - Never promise weight savings without running it; report the real numbers from the report.
