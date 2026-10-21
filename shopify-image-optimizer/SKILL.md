@@ -1,9 +1,11 @@
 ---
 name: shopify-image-optimizer
-description: Audits and optimizes images (JPG, PNG, WebP, TIFF, PSD) for Shopify stores, cutting file weight without losing resolution or quality. Use when the user asks to compress, optimize, resize or validate product, collection, banner or blog images before uploading to Shopify, when images look soft or have off colors on the site, or when files delivered by designers must be checked against the standard (2x size, sRGB, weight, SEO file name).
+description: Audits and optimizes images for Shopify without losing resolution: checks 2x size, sRGB, weight and file names, then compresses by quality only. Use before uploading images to a store.
 ---
 
 # Shopify image optimizer
+
+Use this skill to compress, optimize, resize or validate product, collection, banner or blog images (JPG, PNG, WebP, TIFF, PSD) before they go to Shopify, when images look soft or have off colors on the site, or when files delivered by designers must be checked against the standard (2x size, sRGB, weight, SEO file name).
 
 Goal: light images (SEO and performance) **without** the loss of sharpness and color that happens when files go to the site outside the standard.
 
