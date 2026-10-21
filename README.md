@@ -13,6 +13,19 @@ A standard for exporting and validating images for Shopify stores without losing
 
 Portuguese versions: [`docs/README-ptbr.md`](docs/README-ptbr.md) and [`docs/designers-guide-ptbr.md`](docs/designers-guide-ptbr.md).
 
+## Download
+
+- With Git: `git clone https://github.com/leotubarao/shopify-image-export-guide.git`
+- Without Git: on the repository page on GitHub, click **Code > Download ZIP** and extract it.
+
+Designers only need the guide ([`docs/designers-guide.md`](docs/designers-guide.md)). The skill is for developers.
+
+## Install the skill (optional)
+
+- **Claude (claude.ai or desktop app):** code execution must be enabled. Zip the `shopify-image-optimizer` folder so that the folder itself is the root of the ZIP (`shopify-image-optimizer.zip` containing `shopify-image-optimizer/SKILL.md`). Do not zip the whole repository. Then add the ZIP in **Customize > Skills** and turn the skill on. After that, attach images to a chat and ask Claude to check or optimize them for Shopify. Official guide: [How to create custom skills](https://support.claude.com/en/articles/12512198-how-to-create-custom-skills).
+- **Claude Code:** copy the `shopify-image-optimizer` folder to `~/.claude/skills/` (all your projects) or to `.claude/skills/` inside a project. Official guide: [Extend Claude with skills](https://code.claude.com/docs/en/skills).
+- **Without Claude:** run the script directly with Python, as shown below.
+
 ## The rule in one line
 
 Export at **2× the displayed width**, in **sRGB**, as **JPEG quality 85** (never below 80), and control the weight **through quality only**, never through the dimensions.

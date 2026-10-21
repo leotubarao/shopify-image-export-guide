@@ -13,6 +13,19 @@ Padrão para exportar e validar imagens de lojas Shopify sem perder nitidez nem 
 
 A versão principal, em inglês, está em [`../README.md`](../README.md) e [`designers-guide.md`](designers-guide.md).
 
+## Baixar
+
+- Com Git: `git clone https://github.com/leotubarao/shopify-image-export-guide.git`
+- Sem Git: na página do repositório no GitHub, clique em **Code > Download ZIP** e extraia o arquivo.
+
+Designers só precisam do guia ([`designers-guide-ptbr.md`](designers-guide-ptbr.md)). A skill é para devs.
+
+## Instalar a skill (opcional)
+
+- **Claude (claude.ai ou app desktop):** a execução de código precisa estar ativada. Compacte a pasta `shopify-image-optimizer` de modo que a própria pasta seja a raiz do ZIP (`shopify-image-optimizer.zip` contendo `shopify-image-optimizer/SKILL.md`). Não compacte o repositório inteiro. Depois adicione o ZIP em **Customize > Skills** e ative a skill. Em seguida, anexe imagens numa conversa e peça ao Claude para conferir ou otimizar para Shopify. Guia oficial (em inglês): [How to create custom skills](https://support.claude.com/en/articles/12512198-how-to-create-custom-skills).
+- **Claude Code:** copie a pasta `shopify-image-optimizer` para `~/.claude/skills/` (vale para todos os projetos) ou para `.claude/skills/` dentro de um projeto. Guia oficial (em inglês): [Extend Claude with skills](https://code.claude.com/docs/en/skills).
+- **Sem Claude:** rode o script direto com Python, como mostrado abaixo.
+
 ## A regra em uma linha
 
 Exportar em **2× a largura exibida**, em **sRGB**, em **JPEG qualidade 85** (nunca abaixo de 80), e controlar o peso **só pela qualidade**, nunca pelas dimensões.
