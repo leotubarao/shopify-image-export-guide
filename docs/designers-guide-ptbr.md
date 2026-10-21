@@ -74,6 +74,10 @@ Antes de enviar, confira seus arquivos com a skill [`shopify-image-optimizer`](.
 
 Se um arquivo vier marcado por qualidade estimada abaixo de 80, dimensão menor que o 2× ou perfil fora do sRGB, exporte de novo a partir do PSD. Se tamanho e cor estiverem certos, mas o arquivo passar do peso-alvo, peça ao Claude para otimizar: ele baixa o peso sem reduzir a resolução.
 
+Ao otimizar, a skill conta o que fez: quantas imagens, o peso total antes e depois, a economia em % e se as cores foram convertidas para sRGB. Assim você sabe o quanto foi ajustado e o que corrigir na próxima exportação.
+
+A skill também pode nomear os arquivos. Quando você pedir para otimizar, ela pergunta se quer que ela olhe cada imagem e dê um nome pelo que aparece nela, com prefixo ou sufixo opcionais, como o nome da marca. Se você disser que não, ela só limpa os nomes (minúsculas, hífens, sem acento nem caractere especial).
+
 Quem é dev pode rodar a mesma conferência no terminal:
 
 ```

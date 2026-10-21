@@ -20,6 +20,7 @@ Quick use:
 import argparse
 import csv
 import io
+import json
 import math
 import re
 import sys
@@ -52,6 +53,24 @@ def slugify(stem: str) -> str:
     return s or "image"
 
 
+def clean_name(value: str) -> str:
+    """Sanitize a name coming from a names file: drop a typed image extension, then slugify."""
+    value = str(value).strip()
+    for ext in (".jpg", ".jpeg", ".png", ".webp"):
+        if value.lower().endswith(ext):
+            value = value[: -len(ext)]
+            break
+    return slugify(value)
+
+
+def clean_affix(value) -> str:
+    """Sanitize a prefix/suffix. Returns '' when nothing usable is left (slugify would return 'image')."""
+    if not value:
+        return ""
+    s = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-zA-Z0-9]+", "-", s).strip("-").lower()
+
+
 def fmt_kb(n_bytes: int) -> str:
     return f"{n_bytes / 1024:,.0f} KB"
 
@@ -70,6 +89,18 @@ def has_real_alpha(im: Image.Image) -> bool:
     if im.mode == "P" and "transparency" in im.info:
         return True
     return False
+
+
+def describe_profile(mode: str, icc) -> str:
+    """Human-readable color profile of the ORIGINAL file (for the before/after report)."""
+    if icc:
+        try:
+            desc = (ImageCms.getProfileDescription(ImageCms.ImageCmsProfile(io.BytesIO(icc))) or "").strip()
+        except Exception:
+            desc = "unreadable profile"
+        desc = desc or "unnamed profile"
+        return f"CMYK ({desc})" if mode == "CMYK" else desc
+    return "CMYK (no profile)" if mode == "CMYK" else "none"
 
 
 # ------------------------------------------------------------- color / mode
@@ -210,8 +241,13 @@ def process(path: Path, out_dir: Path, a) -> dict:
     with Image.open(path) as im0:
         im0.load()
         orig_dims = im0.size
+        orig_fmt = im0.format or path.suffix.lstrip(".").upper()
+        orig_q = estimate_jpeg_quality(im0) if im0.format == "JPEG" else None
         im = ImageOps.exif_transpose(im0)
         im.info.update(im0.info)
+        icc = im.info.get("icc_profile")
+        orig_profile = describe_profile(im.mode, icc)
+        color_fixed = im.mode == "CMYK" or (bool(icc) and "srgb" not in orig_profile.lower())
         base = normalize_color(im, notes)
 
     alpha = has_real_alpha(base)
@@ -264,7 +300,13 @@ def process(path: Path, out_dir: Path, a) -> dict:
         warns.append("output is larger than the original (the original was already well compressed)")
 
     ext = {"jpeg": ".jpg", "webp": ".webp", "png": ".png"}[fmt]
-    stem = path.stem if a.no_slug else slugify(path.stem)
+    custom = a.names_map.get(path.name) or a.names_map.get(path.stem)
+    if custom:
+        stem = clean_name(custom)
+        notes.append("renamed from the names file")
+    else:
+        stem = path.stem if a.no_slug else slugify(path.stem)
+    stem = "-".join(p for p in (a.name_prefix, stem, a.name_suffix) if p)
     out_path = out_dir / f"{stem}{ext}"
     n = 2
     while out_path.exists() and a._written.get(out_path) != path:
@@ -273,12 +315,16 @@ def process(path: Path, out_dir: Path, a) -> dict:
     out_path.write_bytes(data)
     a._written[out_path] = path
 
+    orig_kb, new_kb = round(orig_size / 1024), round(len(data) / 1024)
     return dict(
-        file=path.name, output=out_path.name, format=fmt.upper(),
+        file=path.name, output=out_path.name,
+        orig_format=orig_fmt, format=fmt.upper(),
         orig_dim=f"{orig_dims[0]}x{orig_dims[1]}", new_dim=f"{img.size[0]}x{img.size[1]}",
-        orig_kb=round(orig_size / 1024), new_kb=round(len(data) / 1024),
+        orig_kb=orig_kb, new_kb=new_kb, saved_pct=round(100 - 100 * len(data) / max(orig_size, 1)),
+        orig_profile=orig_profile, orig_quality=orig_q if orig_q is not None else "-",
         quality=q if fmt != "png" else "-", psnr_db=round(fid, 1) if fmt != "png" else "-",
         within_target="yes" if ok else "NO", warnings=" | ".join(warns), notes=" | ".join(notes),
+        _color_fixed=color_fixed,
     )
 
 
@@ -382,8 +428,9 @@ def collect(inputs, recursive):
 
 def write_csv(path: Path, rows: list):
     # ';' delimiter + UTF-8 BOM so the file opens directly in Excel in pt-BR locales
+    fields = [k for k in rows[0] if not k.startswith("_")]  # "_" keys are internal (report page only)
     with path.open("w", newline="", encoding="utf-8-sig") as fh:
-        w = csv.DictWriter(fh, fieldnames=list(rows[0].keys()), delimiter=";")
+        w = csv.DictWriter(fh, fieldnames=fields, delimiter=";", extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
 
@@ -410,6 +457,16 @@ def main():
                     help="allow reducing dimensions if the target is not reachable (off by default)")
     ap.add_argument("--floor-side", type=int, default=2048, help="long-side floor used with --allow-downscale")
     ap.add_argument("--no-slug", action="store_true", help="keep the original file name")
+    ap.add_argument("--names", metavar="FILE.json",
+                    help="JSON file mapping each original file name to a new name, e.g. "
+                         '{"IMG_001.png": "vitamin-c-serum-front"}. Names are still sanitized. '
+                         "Without this option, files only get the plain slug (lowercase, hyphens, no accents)")
+    ap.add_argument("--name-prefix", metavar="TEXT",
+                    help="text added before every output name (sanitized), e.g. the brand")
+    ap.add_argument("--name-suffix", metavar="TEXT",
+                    help="text added after every output name (sanitized), e.g. v2")
+    ap.add_argument("--names-template", metavar="FILE.json",
+                    help="write an empty names file for the given inputs and exit (to fill by hand or with an AI)")
     ap.add_argument("-r", "--recursive", action="store_true", help="include subfolders")
     a = ap.parse_args()
 
@@ -424,6 +481,28 @@ def main():
     files = collect(a.inputs, a.recursive)
     if not files:
         sys.exit("No images found (accepted: " + ", ".join(sorted(EXTS)) + ")")
+
+    if a.names_template:
+        tpl = {f.name: "" for f in files}
+        Path(a.names_template).write_text(json.dumps(tpl, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"Names template with {len(tpl)} file(s) written to {a.names_template}")
+        sys.exit(0)
+
+    a.name_prefix = clean_affix(a.name_prefix)
+    a.name_suffix = clean_affix(a.name_suffix)
+    a.names_map = {}
+    if a.names:
+        try:
+            raw = json.loads(Path(a.names).read_text(encoding="utf-8"))
+            if not isinstance(raw, dict):
+                raise ValueError("expected a JSON object")
+        except Exception as e:
+            sys.exit(f"Could not read --names file: {e}")
+        a.names_map = {str(k): str(v) for k, v in raw.items() if str(v).strip()}
+        known = {f.name for f in files} | {f.stem for f in files}
+        unmatched = [k for k in a.names_map if k not in known]
+        if unmatched:
+            print("[warning] names file entries with no matching image: " + ", ".join(unmatched), file=sys.stderr)
 
     if a.check:
         rows = []
@@ -475,8 +554,15 @@ def main():
         write_csv(rep, rows)
         tot_o = sum(r["orig_kb"] for r in rows)
         tot_n = sum(r["new_kb"] for r in rows)
-        print(f"\n{len(rows)} image(s): {tot_o} KB -> {tot_n} KB "
-              f"({100 - 100 * tot_n / max(tot_o, 1):.0f}% smaller). Report: {rep}")
+        n_color = sum(bool(r["_color_fixed"]) for r in rows)
+        n_ren = sum(Path(r["file"]).stem != Path(r["output"]).stem for r in rows)
+        n_warn = sum(bool(r["warnings"]) for r in rows)
+        print(f"\nBefore -> after ({len(rows)} image(s))")
+        print(f"  weight:   {tot_o:,} KB -> {tot_n:,} KB ({100 - 100 * tot_n / max(tot_o, 1):.0f}% smaller)")
+        print(f"  color:    {n_color} converted to sRGB")
+        print(f"  names:    {n_ren} renamed")
+        print(f"  warnings: {n_warn} image(s) need attention")
+        print(f"  CSV report: {rep}")
     sys.exit(1 if failed else 0)
 
 

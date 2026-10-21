@@ -74,6 +74,10 @@ Before sending, check your files with the [`shopify-image-optimizer`](../shopify
 
 If a file is flagged for estimated quality below 80, a size smaller than 2×, or a profile other than sRGB, export it again from the PSD. If size and color are correct but the file is over the weight target, ask Claude to optimize it: it lowers the weight without reducing the resolution.
 
+When it optimizes, the skill tells you what it did: how many images, the total weight before and after, the percent saved and whether colors were converted to sRGB. That tells you how much was adjusted, so you know what to fix in your next export.
+
+The skill can also name the files for you. When you ask it to optimize, it asks whether you want it to look at each image and name it by what it shows, with an optional prefix or suffix such as the brand. If you say no, it only cleans the names (lowercase, hyphens, no accents or special characters).
+
 Developers can run the same check from the terminal:
 
 ```

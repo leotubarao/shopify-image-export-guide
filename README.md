@@ -49,6 +49,10 @@ python3 shopify-image-optimizer/scripts/optimize.py designer-folder -o optimized
 
 Presets: `product`, `collection`, `banner`, `blog`. Use `--display-width` to give the real width of the slot in the theme and `--target-kb` to change the target weight. All options are in [`shopify-image-optimizer/SKILL.md`](shopify-image-optimizer/SKILL.md) or in `--help`.
 
+Naming is optional. By default files only get a plain slug (lowercase, no accents or special characters, hyphens instead of spaces). To name files by what they show, ask Claude: the skill asks first, looks at each image and writes a names file. Without Claude, fill the names yourself (`--names-template names.json`, then `--names names.json`). `--name-prefix` and `--name-suffix` add text before or after every name.
+
+Every optimize run prints a before and after summary: image count, total weight before and after, percent saved, colors converted to sRGB, files renamed and warnings. `report.csv` has the same numbers per image (original and new format, dimensions, weight, color profile and estimated quality).
+
 The recommended flow is to run `--check` first and optimize only what comes back as FIX, preferably from the designer's original file, because each JPEG recompression loses a little quality. The CSV reports use `;` as the delimiter, so they open directly in Excel in pt-BR locales.
 
 ## Things to keep in mind

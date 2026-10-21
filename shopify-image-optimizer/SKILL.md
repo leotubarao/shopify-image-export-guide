@@ -25,14 +25,48 @@ This skill addresses all three: it checks/converts to sRGB, respects 2x, and red
    python3 scripts/optimize.py FOLDER_OR_FILES --check --preset product
    ```
    Shows, per file: format, dimensions, weight, color profile, estimated JPEG quality and name. Status `OK` or `FIX` with the reason.
-3. **Optimize only what needs it**, preferably from the designer's original/master file (not from an already compressed JPEG):
+3. **Ask about naming (optimize runs only).** Before optimizing, ask once, in one short message: "Do you want me to look at each image and rename it by what it shows? You can also add a prefix or suffix, for example the brand or `v2`. If not, I'll just sanitize the names: lowercase, no accents or special characters, hyphens instead of spaces." Skip the question when the user already answered in the request, when you are only running `--check`, or when nobody is there to answer. If the answer is no, or the user does not care, go straight to step 4 with the default behavior. If the answer is yes, follow "Naming files" below.
+4. **Optimize only what needs it**, preferably from the designer's original/master file (not from an already compressed JPEG):
    ```bash
    python3 scripts/optimize.py FOLDER_OR_FILES -o ./optimized --preset product
    ```
-4. **Read the report** in the terminal and in `optimized/report.csv`. Tell the user: how many images, weight before/after, and **every warning**.
-5. Deliver the files in `optimized/`. Originals are never changed.
+5. **Read the report** in the terminal and in `optimized/report.csv`. Then tell the user the before and after (see "Before and after" below), with **every warning**.
+6. Deliver the files in `optimized/`. Originals are never changed.
 
 If Pillow is missing: `pip install Pillow` (add `--break-system-packages` on managed Python installs).
+
+## Naming files
+
+**Default** (the user said no, or did not care): files only get the plain slug. Lowercase, accents and special characters removed, spaces and symbols turned into hyphens (`Sérum Vitamina C - frente.png` becomes `serum-vitamina-c-frente.jpg`). Nothing else changes.
+
+**Context naming** is optional and happens only when the user says yes. The script cannot see images; you can. Procedure:
+
+1. Look at every image (open it; in a chat, attached images are already visible).
+2. Pick a name that says what the image shows: subject first, then view or variant, 3 to 6 words. Examples: `vitamin-c-serum-front`, `vitamin-c-serum-texture`, `woman-applying-cream`.
+3. Use brand or product names only when they are readable in the image or the user gave them. Never invent names, ingredients, benefits or claims; describe what is visible. For skincare and pharma, no therapeutic claims in file names.
+4. Do not name real people. Describe them generically ("woman-applying-cream").
+5. Write the names in the language the user writes in, unless told otherwise. The script strips the accents.
+6. Keep names unique inside the batch (front, back, side, texture, lifestyle). The script adds `-2`, `-3` to repeated names as a safety net.
+7. If you cannot tell what an image shows, leave it out of the names file: it gets the plain slug. Tell the user which ones.
+8. Save a JSON file mapping each original file name to the new name (extension optional) and run with `--names`. To start from a skeleton: `python3 scripts/optimize.py FOLDER --names-template names.json`.
+   ```bash
+   python3 scripts/optimize.py FOLDER -o ./optimized --names names.json
+   ```
+9. After the run, show a short table: old name, new name. Originals are untouched, so a bad name is cheap to redo.
+
+**Prefix and suffix:** if the user wants one (brand, client, season, version), add `--name-prefix` and/or `--name-suffix`. They apply to every file, with or without `--names`, and are sanitized the same way.
+
+```bash
+python3 scripts/optimize.py FOLDER -o ./optimized --names names.json --name-prefix brand --name-suffix v2
+```
+
+## Before and after
+
+After every optimize run, tell the user what happened, in the user's language and in plain words. Keep it short. Example: "I adjusted 5 images: 7.8 MB before, 1 MB after, 87% saved. 1 image had its colors converted to sRGB, 3 were renamed, 1 needs attention (the original is only 600 px)." Take the numbers from the script's "Before -> after" block and from `report.csv`; never estimate them.
+
+- Add a small table only when it helps: old name, new name, weight before and after, per file.
+- Explain every warning in plain language and say what the designer should do (usually: export again from the original PSD).
+- Be honest about what the numbers mean: weight is a real measurement; fidelity (PSNR above ~40 dB) means the difference should be imperceptible, not that it is zero. Do not promise "no visible loss" beyond that.
 
 ## Presets
 
@@ -81,5 +115,9 @@ These are starting goals. Adjust with `--max-side`, `--target-kb` or `--display-
 --allow-downscale    allow reducing dimensions if the target is not reachable
 --floor-side N       long-side floor with --allow-downscale (2048)
 --no-slug            keep the original file name
+--names FILE.json    map original file names to new names (sanitized)
+--names-template F   write an empty names file for the inputs and exit
+--name-prefix TEXT   text added before every output name
+--name-suffix TEXT   text added after every output name
 -r                   include subfolders
 ```
